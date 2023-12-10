@@ -1,0 +1,112 @@
+
+#IAM AUTHORIZATION 
+
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~>4"
+    }
+  }
+}
+
+provider "aws" {
+  profile = "default"
+  region  = "ap-southeast-1"
+
+}
+
+# Create an IAM groups
+resource "aws_iam_group" "TERRATESTING1" {
+  name = "TERRATESTING1"
+  path = "/"
+}
+resource "aws_iam_group" "TERRATESTING2" {
+  name = "TERRATESTING2"
+  path = "/"
+}
+resource "aws_iam_group" "TERRATESTING3" {
+  name = "TERRATESTING3"
+  path = "/"
+}
+resource "aws_iam_group" "TERRATESTING4" {
+  name = "TERRATESTING4"
+  path = "/"
+}
+
+# Attach a policy to the IAM groups
+resource "aws_iam_group_policy_attachment" "Amazon_EC2_Full_Access" {
+  group      = aws_iam_group.TERRATESTING1.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"  
+}
+resource "aws_iam_group_policy_attachment" "Amazon_Cognito_Read_Only" {
+  group      = aws_iam_group.TERRATESTING2.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonCognitoReadOnly"  
+}
+resource "aws_iam_group_policy_attachment" "Amazon_S3_FullAccess" {
+  group      = aws_iam_group.TERRATESTING3.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"  
+}
+resource "aws_iam_group_policy_attachment" "IAM_Read_Only_Access" {
+  group      = aws_iam_group.TERRATESTING4.name
+  policy_arn = "arn:aws:iam::aws:policy/IAMReadOnlyAccess"  
+}
+
+# Create IAM users
+resource "aws_iam_user" "TERRATESTER1" {
+  name = "TERRATESTER1"
+  path = "/"
+}
+resource "aws_iam_user" "TERRATESTER2" {
+  name = "TERRATESTER2"
+  path = "/"
+}
+resource "aws_iam_user" "TERRATESTER3" {
+  name = "TERRATESTER3"
+  path = "/"
+}
+resource "aws_iam_user" "TERRATESTER4" {
+  name = "TERRATESTER4"
+  path = "/"
+}
+
+# Add the IAM user to the IAM group
+resource "aws_iam_user_group_membership" "example_user_group_membership" {
+  user  = aws_iam_user.TERRATESTER1.name
+  groups = [aws_iam_group.TERRATESTING1.name]
+}
+resource "aws_iam_user_group_membership" "example_user2_group_membership" {
+  user  = aws_iam_user.TERRATESTER2.name
+  groups = [aws_iam_group.TERRATESTING2.name]
+}
+resource "aws_iam_user_group_membership" "example_user3_group_membership" {
+  user  = aws_iam_user.TERRATESTER3.name
+  groups = [aws_iam_group.TERRATESTING3.name]
+}
+resource "aws_iam_user_group_membership" "example_user4_group_membership" {
+  user  = aws_iam_user.TERRATESTER4.name
+  groups = [aws_iam_group.TERRATESTING4.name]
+}
+
+#Add access key for Users
+resource "aws_iam_access_key" "TERRATESTER1_access_key" {
+  user = aws_iam_user.TERRATESTER1.name
+}
+
+output "access_key_id" {
+  value = aws_iam_access_key.TERRATESTER1_access_key.id
+  sensitive = true
+}
+output "secret_access_key" {
+  value = aws_iam_access_key.TERRATESTER1_access_key.secret
+  sensitive = true
+}
+locals {
+  TERRATESTER1_keys_csv = "access_key,secret_key\n${aws_iam_access_key.TERRATESTER1_access_key.id},${aws_iam_access_key.TERRATESTER1_access_key.secret}"
+}
+
+resource "local_file" "TERRATESTER1_keys" {
+  content  = local.TERRATESTER1_keys_csv
+  filename = "TERRATESTER1-keys.csv"
+}
+
